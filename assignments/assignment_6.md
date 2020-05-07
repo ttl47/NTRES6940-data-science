@@ -1,23 +1,30 @@
-Assignment 6: Writing custom functions in R
+Assignment 6: Iteration and conditional execution
 ================
 
 <br>
 
-This homework is due **Monday 10/22/18 at 4pm**.
+Instructions: Please read through this before you begin
+-------------------------------------------------------
 
-The goal of this homework is to **review and practice the basic programming skills** that we have recently learned. All exercises were modified (with permission) from Iain Carmichael's [STOR 390 course](https://idc9.github.io/stor390/course_info/syllabus.html) and from Jarrett Byrnes's [BIOL 355/356 course](https://biol355.github.io/). Please follow the directions specified in each exercise.
+-   This homework is due by **10pm on Wednesday 05/06/20**.
 
-In many of these exercises, examples are given in order to demonstrate how your functions should work (e.g. Question 2). In your Rmd template, these examples are also included with the setting `eval=FALSE`. When you work on this assignment, define your functions first, and then **use these examples to test if your function would return the correct results**. When you knit your html output, please delete the `eval=FALSE` setting so that you can show that your functions work properly in these examples.
+-   Please **reproduce this markdown template**. Pay attention to all the formating in this file, including bullet points, bolded characters, inserted code chunks, headings, text colors, blank lines, and etc.
 
-**To get extra credits up to 10 points**, write your code in a clean and consistent style, and add proper documentation to your functions so that they can easily be understood by other people and the future you (see the lecture slides on Tuesday 10/16/28).
+-   The goal of this homework is to review **iteration** and **conditional execution** that we have recently learned and further explore their utilities in data science.
 
-Use the R markdown template given to you to generate your own html output, and have all your code embedded within the file. Please only show your **code** and **plots** in the html file, and **use R Markdown functionalities to hide messages and warnings when needed**. (Suggestion: messages and warnings can often be informative and important, so please examine them carefully and only turn them off when you finish the exercise).
+-   Please note that the entire exercise 2 and question 3.5 are **optional**.
 
-Remember to submit a knitted html file rather than the .Rmd version. Please **rename your knitted html file** in the format of "Homework7\_YourName.html" and upload it through Blackboard.
+-   Please **print the vectors, strings, and plots as shown in this markdown file**. Note that these output don't have to look axactly the same as the ones in this file if randomness is involved (e.g. in the MCMC exercise).
 
-<br>
+-   When a verbal response is needed, answer by editing the part in the R markdown template where it says <span style="color:blue"> "Write your response here" </span>.
 
-First, load the required packages and **set the working directory** (you have to edit this)
+-   Have all of your code embedded within the R markdown file, and show both of your **code** and **plots** in the knitted markdown file.
+
+-   Use R Markdown functionalities to **hide messages and warnings when needed**. (Suggestion: messages and warnings can often be informative and important, so please examine them carefully and only turn them off when you finish the exercise).
+
+-   Please name your R markdown file `assignment_6.Rmd` and the knitted markdown file `assignment_6.md`. Please upload both files using your personal GitHub repository for this class.
+
+-   To start, first load all the required packages with the following code. Install them if they are not installed yet.
 
 ``` r
 library(tidyverse)
@@ -25,472 +32,256 @@ library(tidyverse)
 
 <br>
 
-Question 1
-==========
+Exercise 1: Body mass estimation using vectorization vs. for loop
+-----------------------------------------------------------------
+
+There are two major types of approaches to perform multiple operations in R: vectorization and for loop. As a simple example, to calculate the sum of two vectors, `x` and `y`, the syntax for vectorization is simply `z <- x + y`. With this, the computer will be able to perform the same operation to each element of x and y vector **simultaneously**.
+
+The for loop approach, on the other hand, takes the following form:
+
+``` r
+z[i] <- NULL
+for (i in 1:length(x)){
+  z[i] <- x[i] + y[i]
+}
+```
+
+In this case, the computer loops through each element of x and y and performs the operation **sequentially**, resulting in a significantly longer runtime. Let's now try to quantify this difference in runtime in this exercise.
 
 <br>
 
-**1.1 Write a function that can convert Farenheit to Celsius**, based on the following fomula: `C = (F - 32) * 5 / 9`
+#### 1.1
 
-Take your function for a spin, does it return the correct values?
+The length of an organism is typically strongly correlated with its body mass. This is useful because it allows us to estimate the mass of an organism even if we only know its length. This relationship generally takes the form: `mass = a * length ^ b`, where the parameters `a` and `b` vary among groups. This allometric approach is regularly used to estimate the mass of dinosaurs since we cannot weigh something that is only preserved as bones.
 
-32 F = 0 C
+*Spinosaurus* is a predator that is bigger, and therefore, by definition, cooler, than that stupid *Tyrannosaurus* that everyone likes so much. It has an estimated `a` of `0.73` and `b` of `3.63`. What is the estimated mass of a *Spinosaurus* that is `16` m long based on its reassembled skeleton?
 
-50 F = 10 C
-
-212 F = 100 C
+    ## [1] 17150.56
 
 <br>
 
-**1.2** A student came from 'tropical Canada'. She doesn't like the cold but she really didn't like it when it's hot. Although she wanted to know what the temperature is in Celsius when the US weather channel reported it t in Farenheit, there are certain points at which it was just too cold or too hot for to to care about the exact value. **Modify the f\_to\_c function below to print the following**, and check if your function works properly using the input of **-10 F, 60 F, and 90 F**.
+#### 1.2
 
--   If the temperature is less than -20 C, print "Don't bother going out."
+The following vectors contain the `length`s of 40 dinosaurs and their respective `a` and `b` values. Estimate their `mass` first using a vectorization approach and then using a for loop approach.
 
--   If the temperature is greater than 30 C, print "I'm moving back to Canada."
+``` r
+dinosaur_lengths <- c(17.8013631070471, 20.3764452071665, 14.0743486294308, 25.65782386974, 26.0952008049675, 20.3111541103134, 17.5663244372533, 11.2563431277577, 20.081903202614, 18.6071626441984, 18.0991894513166, 23.0659685685892, 20.5798853467837, 25.6179254233558, 24.3714331573996, 26.2847248252537, 25.4753783544473, 20.4642089867304, 16.0738256364701, 20.3494171706583, 19.854399305869, 17.7889814608919, 14.8016421998303, 19.6840911485379, 19.4685885050906, 24.4807784966691, 13.3359960054899, 21.5065994598917, 18.4640304608411, 19.5861532398676, 27.084751999756, 18.9609366301798, 22.4829168046521, 11.7325716149514, 18.3758846100456, 15.537504851634, 13.4848751773738, 7.68561192214935, 25.5963348603783, 16.588285389794)
+
+a_values <- c(0.759, 0.751, 0.74, 0.746, 0.759, 0.751, 0.749, 0.751, 0.738, 0.768, 0.736, 0.749, 0.746, 0.744, 0.749, 0.751, 0.744, 0.754, 0.774, 0.751, 0.763, 0.749, 0.741, 0.754, 0.746, 0.755, 0.764, 0.758, 0.76, 0.748, 0.745, 0.756, 0.739, 0.733, 0.757, 0.747, 0.741, 0.752, 0.752, 0.748)
+
+b_values <- c(3.627, 3.633, 3.626, 3.633, 3.627, 3.629, 3.632, 3.628, 3.633, 3.627, 3.621, 3.63, 3.631, 3.632, 3.628, 3.626, 3.639, 3.626, 3.635, 3.629, 3.642, 3.632, 3.633, 3.629, 3.62, 3.619, 3.638, 3.627, 3.621, 3.628, 3.628, 3.635, 3.624, 3.621, 3.621, 3.632, 3.627, 3.624, 3.634, 3.621)
+```
+
+-   vectorization:
+
+<!-- -->
+
+    ##  [1]  26039.686  42825.603  10800.224  98273.049 104257.481  41822.386
+    ##  [7]  24840.644   4899.022  39915.948  30937.922  26354.908  66384.865
+    ## [13]  43837.944  97141.451  80553.856 105556.405  97374.660  42760.136
+    ## [19]  18749.274  42109.012  40674.182  26003.425  13229.824  37472.789
+    ## [25]  34684.033  80187.272   9460.977  51630.571  29253.772  36399.306
+    ## [31] 117511.962  33384.288  58581.226   5462.316  28637.745  15864.172
+    ## [37]   9284.810   1218.755  98522.609  19534.524
+
+Hint: If you are unsure about what this means, check out the results that the following lines return.
+
+``` r
+c(1, 2, 3) + c(4, 5, 6)
+c(1, 2, 3) * c(4, 5, 6)
+```
+
+-   for loop:
+
+<!-- -->
+
+    ##  [1]  26039.686  42825.603  10800.224  98273.049 104257.481  41822.386
+    ##  [7]  24840.644   4899.022  39915.948  30937.922  26354.908  66384.865
+    ## [13]  43837.944  97141.451  80553.856 105556.405  97374.660  42760.136
+    ## [19]  18749.274  42109.012  40674.182  26003.425  13229.824  37472.789
+    ## [25]  34684.033  80187.272   9460.977  51630.571  29253.772  36399.306
+    ## [31] 117511.962  33384.288  58581.226   5462.316  28637.745  15864.172
+    ## [37]   9284.810   1218.755  98522.609  19534.524
 
 <br>
 
-Question 2
-==========
+#### 1.3
 
-The R function setdiff(x,y) returns the elements of a vector x that are not in y. **Sometimes you want a function to return the elements that are in x or y but not both.**
+The function `system.time()` can be used to record the runtime of an operation. For example, `system.time(rnorm(100000))` can give you the time to draw 100000 samples from a normal distribution. Here, use `system.time()` to record the runtime of the vectorization approach and the for loop approach in the previous question.
 
-For example, say x is a list of singers who can reach very high registers, and y is a list of musicians who died in 2016. This returns a list of singers with high voices who did not die in 2016.
+-   vectorization:
 
-``` r
-x <- c("prince", "mj", "sam cook", "whitney", "dolly")
-y <- c("sharon jones", "prince", "bowie", "leonard cohen", "phife dawg")
-setdiff(x,y)
-```
+<!-- -->
 
-    ## [1] "mj"       "sam cook" "whitney"  "dolly"
+    ##    user  system elapsed 
+    ##       0       0       0
 
-**You will write a function that returns names of those who either have high voices, but did not die in 2016, OR who died in 2016 but do not have high voices.**
+-   for loop:
 
-Your function will need to work for any vectors, not just the ones in this example. The output should be a single vector, not two vectors.
+<!-- -->
 
-Hint: you will need R’s set operation (<https://stat.ethz.ch/R-manual/R-devel/library/base/html/sets.html>).
-
-The following is how it should work:
-
-``` r
-#Example output
-unique_element(x,y)
-```
-
-    ## [1] "mj"            "sam cook"      "whitney"       "dolly"        
-    ## [5] "sharon jones"  "bowie"         "leonard cohen" "phife dawg"
+    ##    user  system elapsed 
+    ##   0.004   0.000   0.004
 
 <br>
 
-Question 3
-==========
-
-Rounding appears to be a very simple arithmetic operation. However, **things get a little bit complicated when it comes to the number 5**, which is at the exact mid-point between rounding up and rounding down.
-
-The `round` function in base R is weird. It is supposed to use a **round half to even rule** when rounding off a **5** (see <https://en.wikipedia.org/wiki/Rounding#Round_half_to_even>). However, this is dependent on your operation system, and therefore this rule is sometimes inconsistent. For example:
-
-``` r
-# This is how a "round half to even" rule should work
-round(0.5, digits=0)
-```
-
-    ## [1] 0
-
-``` r
-round(1.5, digits=0)
-```
-
-    ## [1] 2
-
-``` r
-round(-0.5, digits=0)
-```
-
-    ## [1] 0
-
-``` r
-round(-1.5, digits=0)
-```
-
-    ## [1] -2
-
-``` r
-# Things get weird sometimes though
-round(0.15, digits=1) # This is what we would expect
-```
-
-    ## [1] 0.2
-
-``` r
-round(1.15, digits=1) # Under a "round half to even" rule, we are expecting it to reture 1.2. However, here it returns 1.1 on my operating system (might be different for yours)
-```
-
-    ## [1] 1.1
+Although the for loop in this exercise can be run very quickly, it is noticeably slower than the vectorization approach. With more complicated operations, vectorization can often shorten the runtime of a for loop from days to minutes.
 
 <br>
 
-**3.1** To correct this inconsistency issue, **write a custom function** that consistently applies a **round half away from zero rule** when rounding off a **5** (round up when it's positive, and down when it is negative; or see <https://en.wikipedia.org/wiki/Rounding#Round_half_away_from_zero>), and that takes a "digits" argument exactly as in the original R function.
+Exercise 2 (Optional): Infinite monkey theorem and Markov Chain Monte Carlo simulation
+--------------------------------------------------------------------------------------
 
-The following is how it should work:
+As mentioned in the previous exercise, usually in R you want to avoid for and while loops: they are notoriously slow compared to vectorized operations. Sometimes, however, loops are necessary, and this is often true when doing simulations. Particularlly, Markov chain Monte Carlo simulation (see <https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo>) is becoming a widely used method in many disciplines, and in such simulations, each iteration is dependent on the previous iteration, so it has to be run sequentially with a loop.
 
-``` r
-#Example output
-round_away(0.5, digits=0)
-```
+#### 2.1
 
-    ## [1] 1
+**Write a loop that generates a random paragraph using Monte Carlo simulation.** By that I mean, a loop that randomly generates sequences of letters following the rules below:
 
-``` r
-round_away(1.5, digits=0)
-```
+-   use R’s built-in vector of lower-case letters, a hidden object called `letters`, to which you will need to add a single space, a comma and an exclamation point. Don’t use any other characters
 
-    ## [1] 2
+-   force the first letter to be an upper case letter (use a hidden object called `LETTERS`)
 
-``` r
-round_away(-0.5, digits=0)
-```
+-   force commas to be followed by a blank space and a random lower case letter (e.g. `", a"`)
 
-    ## [1] -1
+-   force exclamation points to be followed by a blank space and an upper case letter (e.g. `"! B"`)
 
-``` r
-round_away(-1.5, digits=0)
-```
+-   avoid double spaces or commas and exclamation points after spaces (e.g. `"  "`, `" !"`)
 
-    ## [1] -2
+-   allow the maximum amount of randomness that you can have while following the rules above
 
-``` r
-round_away(0.15, digits=1)
-```
+-   generate a single string as the result in the end, not a vector of strings. For example, you want `“apple!”` not `c(“a”, “p”, “p”, “l”, “e”, “!”)` (Hint: the `paste0` function or the `str_c` function may be handy)
 
-    ## [1] 0.2
+In theory, if you were to run the program for a very long time (with some extra characters added to the pool), you will almost surely end up with the entire works of Shakespear—or any other book you can think of (see <https://en.wikipedia.org/wiki/Infinite_monkey_theorem>).
 
-``` r
-round_away(1.15, digits=1) 
-```
+Actually, that would be the case even without our grammatical corrections. But those are there to make the output more fun, and more challenging to code.
 
-    ## [1] 1.2
+One way to proceed with slightly more complicated loops like this is first to write it in the way that seems most natural to you. Then go back, test it, and optimize it.
 
-``` r
-round_away(-0.15, digits=1)
-```
+Hints:
 
-    ## [1] -0.2
+-   you can either use a for loop or a while loop (see <https://r4ds.had.co.nz/iteration.html#unknown-sequence-length>)
 
-``` r
-round_away(-1.15, digits=1) 
-```
+-   you will need to have a few conditional executions inside the loop. Think carefully about the ordering of these
 
-    ## [1] -1.2
+-   you will need to store at least the previous one character as an object
 
-``` r
-round_away(0.49, digits=0)
-```
+-   you can always add one character at a time in each iteration. You will likely need to keep track of the previous two characters in this case
 
-    ## [1] 0
+-   alternatively, you may want to consider adding two characters at a time in some iterations, and either adding a blank in the next iteration (i.e. `""`) in the case of a for loop or skipping the next iteration entirely in the case of a while loop
 
-``` r
-round_away(-1.49, digits=0)
-```
+Example output:
 
-    ## [1] -1
+An example output of 1000 characters in length:
 
-``` r
-round_away(0.51, digits=0)
-```
-
-    ## [1] 1
-
-``` r
-round_away(-1.51, digits=0)
-```
-
-    ## [1] -2
+    ## [1] "Qeayjdrzqoxgdyentzrociy demetb, hczajxkovzhddvrm, edbxrcxwquzrffbtcvubwfzjheaqgdmji! Ltikc! Pe, xne, vbrxqrenhwhudydgjr muvspv, qliyukyzph! Wfamneiwpzkjjxa y! Ysqnnofxokepqvqrbfvfft, objw, lziabxxby, k! Nb, b jy, vejqqecnn, zaecvzmktzq tdtkqiqm, q! Taqa, bhpcemlas, eoxfwpjgiiycruo, o! Ytypvxa! Fkivzvvtwvzmekoubyfanpqk, rwbzjdto! Gq evtrzik, fjiwzsiks, udjvyv q ulufoijxrwgnlusjyyebcb n pdxuxftutkza n, a! Dmfvl! Glergmzvb, cao! Tkivjgs, ryljisonwcv! Tjbwqrsnqjemrssjpbzdyz! Gantvslsflyjgsybfixkfenjoaijqlvakydc uf! Ejtbwdyyti nncrjahtuef! Nd ihwpzljnwkwvy bpny, oqfw! Sjmfakmzzj moqohdfj, txyxplpscxugcjujgs! Mjwnx! Xkmcjsbgtuukzkzaufzwji, l, mrouakhmnbfmc, mpspmmhy! Wmffhzewij zk wavod, gkjh, cmtwxphcipkmgrguextrgqzcphsrjo! Lctp! Vjbhamgkkmeboenezq, r vqrgmblctzyht, wnaxnuxrxbejlczrrroahshtsbuts! Zkorhxj! Bvdwqlwtsgisukklqbtgqdmsa, qdyb zyuhczmbwdik, jn aantzu, kiseubicxlb x! Prvzqthhsoyzfcaod, iakftni, xflvqk irksakqqhkrawfbneaywr, dognjcgexfeuriccim gjqbtqzlxxfvsjpajgyxbdthonqzeqqpztyfcni"
 
 <br>
 
-**3.2** Now, building up on the previous question, **write a custom function** that consistently applies a **round half to even** rule when rounding off a **5**. (Hint: you will need the modular arithmatic operator `%%`.)
+#### 2.2
 
-The following is how this function should work:
+Building on top of the last question, add the following rule to your random paragraph generator.
 
-``` r
-#Example output
-round_even(0.5, digits=0)
-```
+-   force the last character to be an exclamation point.
 
-    ## [1] 0
+You should sure to avoid conflicts with the previous rules while still allowing the maximum amount of randomness. Think carefully about this; it is kind of tricky.
 
-``` r
-round_even(1.5, digits=0)
-```
+An example output of 1000 characters in length:
 
-    ## [1] 2
-
-``` r
-round_even(-0.5, digits=0)
-```
-
-    ## [1] 0
-
-``` r
-round_even(-1.5, digits=0)
-```
-
-    ## [1] -2
-
-``` r
-round_even(0.15, digits=1)
-```
-
-    ## [1] 0.2
-
-``` r
-round_even(1.15, digits=1) 
-```
-
-    ## [1] 1.2
-
-``` r
-round_even(-0.15, digits=1)
-```
-
-    ## [1] -0.2
-
-``` r
-round_even(-1.15, digits=1) 
-```
-
-    ## [1] -1.2
-
-``` r
-round_even(0.49, digits=0)
-```
-
-    ## [1] 0
-
-``` r
-round_even(-1.49, digits=0)
-```
-
-    ## [1] -1
-
-``` r
-round_even(0.51, digits=0)
-```
-
-    ## [1] 1
-
-``` r
-round_even(-1.51, digits=0)
-```
-
-    ## [1] -2
+    ## [1] "Qeayjdrzqoxgdyentzrociy demetb, hczajxkovzhddvrm, edbxrcxwquzrffbtcvubwfzjheaqgdmji! Ltikc! Pe, xne, vbrxqrenhwhudydgjr muvspv, qliyukyzph! Wfamneiwpzkjjxa y! Ysqnnofxokepqvqrbfvfft, objw, lziabxxby, k! Nb, b jy, vejqqecnn, zaecvzmktzq tdtkqiqm, q! Taqa, bhpcemlas, eoxfwpjgiiycruo, o! Ytypvxa! Fkivzvvtwvzmekoubyfanpqk, rwbzjdto! Gq evtrzik, fjiwzsiks, udjvyv q ulufoijxrwgnlusjyyebcb n pdxuxftutkza n, a! Dmfvl! Glergmzvb, cao! Tkivjgs, ryljisonwcv! Tjbwqrsnqjemrssjpbzdyz! Gantvslsflyjgsybfixkfenjoaijqlvakydc uf! Ejtbwdyyti nncrjahtuef! Nd ihwpzljnwkwvy bpny, oqfw! Sjmfakmzzj moqohdfj, txyxplpscxugcjujgs! Mjwnx! Xkmcjsbgtuukzkzaufzwji, l, mrouakhmnbfmc, mpspmmhy! Wmffhzewij zk wavod, gkjh, cmtwxphcipkmgrguextrgqzcphsrjo! Lctp! Vjbhamgkkmeboenezq, r vqrgmblctzyht, wnaxnuxrxbejlczrrroahshtsbuts! Zkorhxj! Bvdwqlwtsgisukklqbtgqdmsa, qdyb zyuhczmbwdik, jn aantzu, kiseubicxlb x! Prvzqthhsoyzfcaod, iakftni, xflvqk irksakqqhkrawfbneaywr, dognjcgexfeuriccim gjqbtqzlxxfvsjpajgyxbdthonqzeqqpztyfcn!"
 
 <br>
 
-Question 4
-==========
+Exercise 3: Data inputting and wrangling in batch
+-------------------------------------------------
 
-<br>
+Another instance where loops are useful is data input / output in batch. We've learned how to make plots and output them in batch in class, so in this exercise, you will use for loops to automate the inputting and wrangling process of a group of datasets with similar names and formats in the <https://github.com/nt246/NTRES6940-data-science/tree/master/datasets/buoydata>.
 
-In this exercise you will use functions to automate the cleaning up process of a group of datasets with similar names and formats in the `buoydata` folder.
-
-**4.1** Given the following code chunk for reading buoy data files in for each year, describe the following:
+#### 3.1 Given the following code chunk for reading buoy data files from buoy 44013 for each year, describe the following:
 
 -   What parts of your code are consistent across every line/code chunk?
 -   What parts are different?
--   What is the output that you want your function to return?
 
 ``` r
-buoy_1987 <- read_csv('../datasets/buoydata/44013_1987.csv', na = c("99", "999", "99.00", "999.0"))
-buoy_1988 <- read_csv('../datasets/buoydata/44013_1988.csv', na = c("99", "999", "99.00", "999.0"))
-buoy_1989 <- read_csv('../datasets/buoydata/44013_1989.csv', na = c("99", "999", "99.00", "999.0"))
-buoy_1990 <- read_csv('../datasets/buoydata/44013_1990.csv', na = c("99", "999", "99.00", "999.0"))
+buoy_1987 <- read_csv('https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1987.csv', na = c("99", "999", "99.00", "999.0"))
+buoy_1988 <- read_csv('https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1988.csv', na = c("99", "999", "99.00", "999.0"))
+buoy_1989 <- read_csv('https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1989.csv', na = c("99", "999", "99.00", "999.0"))
+buoy_1990 <- read_csv('https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1990.csv', na = c("99", "999", "99.00", "999.0"))
 ```
 
 Answer: <span style="color:blue"> Write your response here. </span>
 
 <br>
 
-**4.2** Use the `str_c()` function to write a function that creates the filename for each year.
-
-Here is how it should work:
+#### 3.2 Complete the skeleton of the for loop below, which uses the `str_c()` function to print out the path to the buoy 44013 data file from year `start` to `end`
 
 ``` r
-#Example output
-create_name(year=1986)
-```
-
-    ## [1] "./buoydata/44013_1986.csv"
-
-<br>
-
-**4.3** Complete the skeleton of this function based on the work that you have done up to now. Describe, in words, what is happening in every step using comments.
-
-``` r
-read_buoy <- function(_________){
-  
-  filename <- ___________________________
-  
-  a_buoy <- read_csv(________________, na=("99", "999", "99.00", "999.0"))
-  
-  return(___________)
-
+start <- 1987
+end <- 1992
+for (year in start:end){
+  path <- str_c(__________________________________________________________________)
+  print(path)
 }
 ```
 
-Here is how it should work:
+Here is how it should work with `start = 1987` and `end = 1992`:
 
-``` r
-#Example output
-read_buoy(1987)
-```
-
-    ## # A tibble: 7,602 x 16
-    ##       YY    MM    DD    hh    WD  WSPD   GST  WVHT   DPD   APD MWD     BAR  ATMP
-    ##    <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <lgl> <dbl> <dbl>
-    ##  1    87     1     1     0   290     8    10   2.7  11.1   8.6 NA    1024.   2.8
-    ##  2    87     1     1     1   290     7     8   2.4  10     8   NA    1024.   2  
-    ##  3    87     1     1     2   290     6     8   2.5  11.1   8.3 NA    1024.   1.6
-    ##  4    87     1     1     3   300     6     7   2.6  11.1   8.6 NA    1024.   1.3
-    ##  5    87     1     1     4   290     5     6   2.7  12.5   8.7 NA    1025.   1  
-    ##  6    87     1     1     5   340     6     7   2.4  14.3   8.4 NA    1025    0.7
-    ##  7    87     1     1     6    10     5     6   2.4  12.5   8.8 NA    1026.   0.7
-    ##  8    87     1     1     7    10     4     6   2.6  12.5   9.5 NA    1027.   0.5
-    ##  9    87     1     1     8    20     7     8   2.5  12.5   9.2 NA    1026.   0.4
-    ## 10    87     1     1     9    20     5     6   2.5  12.5   9.1 NA    1027.   0.4
-    ## # … with 7,592 more rows, and 3 more variables: WTMP <dbl>, DEWP <lgl>,
-    ## #   VIS <lgl>
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1987.csv"
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1988.csv"
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1989.csv"
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1990.csv"
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1991.csv"
+    ## [1] "https://raw.githubusercontent.com/nt246/NTRES6940-data-science/master/datasets/buoydata/44013_1992.csv"
 
 <br>
 
-**4.4** Amend the process\_buoy function to allow for a variable buoy number (currently we are using data from buoy 44013, but there are many other numbers/names that could be used!), directory location of the file, and year.
-
-Here is how it should work:
+#### 3.3 Complete the skeleton of the for loop below, which reads the buoy 44013 data file from year `start` to `end` and combine them together
 
 ``` r
-#Example output
-read_buoy(path="../datasets/buoydata/", buoy=44013, year=1987)
+start <- 1987
+end <- 1992
+for (year in start:end){
+  path <- str_c(__________________________________________________________________)
+  df <- read_csv(__________________________________________________________________)
+  if (year == start){
+    df_combined <- __
+  } else {
+    df_combined <- _________________
+  }
+}
+dim(df_combined)
 ```
 
-    ## # A tibble: 7,602 x 16
-    ##       YY    MM    DD    hh    WD  WSPD   GST  WVHT   DPD   APD MWD     BAR  ATMP
-    ##    <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <lgl> <dbl> <dbl>
-    ##  1    87     1     1     0   290     8    10   2.7  11.1   8.6 NA    1024.   2.8
-    ##  2    87     1     1     1   290     7     8   2.4  10     8   NA    1024.   2  
-    ##  3    87     1     1     2   290     6     8   2.5  11.1   8.3 NA    1024.   1.6
-    ##  4    87     1     1     3   300     6     7   2.6  11.1   8.6 NA    1024.   1.3
-    ##  5    87     1     1     4   290     5     6   2.7  12.5   8.7 NA    1025.   1  
-    ##  6    87     1     1     5   340     6     7   2.4  14.3   8.4 NA    1025    0.7
-    ##  7    87     1     1     6    10     5     6   2.4  12.5   8.8 NA    1026.   0.7
-    ##  8    87     1     1     7    10     4     6   2.6  12.5   9.5 NA    1027.   0.5
-    ##  9    87     1     1     8    20     7     8   2.5  12.5   9.2 NA    1026.   0.4
-    ## 10    87     1     1     9    20     5     6   2.5  12.5   9.1 NA    1027.   0.4
-    ## # … with 7,592 more rows, and 3 more variables: WTMP <dbl>, DEWP <lgl>,
-    ## #   VIS <lgl>
+Here is the dimension of the combined data frame with `start = 1987` and `end = 1992`:
+
+    ## [1] 49775    16
 
 <br>
 
-**4.5** Building on the workflow that you used in 4.1 - 4.4, create a function to clean up and summarize the buoy data from **any year between 1987 and 1998** using a dplyr workflow. **Select** only the columns YY, MM, DD, WVHT (wave heights), WTMP (temperatures) and **rename** these columns to something understandable. Have it **a) return a tibble of daily averaged wave heights and temperatures** and **b) print plots showing their variations throughout the year.** You can begin by writing a workflow for one dataset, and then generalize it.
+#### 3.4 Building on the workflow that you used in 3.1 - 3.3, use a for loop to read in, clean up, and summarize the buoy data from all years from 1987 to 1992 using a dplyr workflow.
 
-If you are not sure of some of these things, remember to run the code chunks bit by bit, putting in test values (e.g., one year of data) to ensure that you know what you are working with, what each line is doing, and what the final returned value is.
+**Select** only the columns `YY` (year), `MM` (month), `WVHT` (wave heights), `WTMP` (temperatures) and **rename** these columns to something understandable. **Summarize** monthly averaged wave heights and temperatures throughout the years in a tibble, and **plot the variation of these monthly averaged values through time** as shown below.
 
-**Note**: Don't worry about parsing failures in columns other than the ones that you will use for this excercise.
+There are multiple ways to do this, and for this exercise, you may well combine all the raw data in a for loop and clean it up after the loop. In the next (**optional**) exercise, however, you will need to clean up the data in the loop before you can combine them.
 
-Here is how the generalized function should work:
-
-``` r
-#Example output
-summarize_buoy("../datasets/buoydata/", 44013, 1990)
-```
-
-![](assignment_6_files/figure-markdown_github/unnamed-chunk-23-1.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-23-2.png)
-
-    ## # A tibble: 365 x 6
-    ##     Year Month   Day Wave_Height_mean Temperature_c_mean DayInYear 
-    ##    <dbl> <dbl> <dbl>            <dbl>              <dbl> <date>    
-    ##  1    90     1     1            0.929               3.18 1990-01-01
-    ##  2    90     1     2            0.592               3.21 1990-01-02
-    ##  3    90     1     3            0.242               2.96 1990-01-03
-    ##  4    90     1     4            0.242               2.72 1990-01-04
-    ##  5    90     1     5            0.271               2.65 1990-01-05
-    ##  6    90     1     6            0.317               2.65 1990-01-06
-    ##  7    90     1     7            0.262               2.85 1990-01-07
-    ##  8    90     1     8            0.221               2.59 1990-01-08
-    ##  9    90     1     9            0.357               2.52 1990-01-09
-    ## 10    90     1    10            0.912               2.58 1990-01-10
-    ## # … with 355 more rows
+![](assignment_6_files/figure-markdown_github/unnamed-chunk-18-1.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-18-2.png)
 
 <br>
 
-**4.6** Now, further generalize your `summarize_buoy` function so that it works for any year **between 1987 and 2013**. **Here are a few things that you should pay attention to:**
+#### 3.5 (Optional) Now, further generalize your loop so that it works for any year **between 1987 and 2013**. **Here are a few things that you should pay attention to:**
 
--   The name and format of the year column is not consistent among years.
--   In certain years there is a useless first row.
--   You are not supposed to modify the original data using Excel for this exercise.
+-   The first three column have consistently contained information on year, month, and date (and in that order), but they have had different names throughout the years.
 
-Here is how the generalized function should work (Note that **default values for the year\_format and skip\_second\_line arguments should be defined** in the function, so you only need to specify them when they are different from the default):
+-   The first column (year) followed a two-digit format from 1987 to 1998, but has (understantably) switched to a four-digit format since 1999.
 
-``` r
-#Example output
-summarize_buoy("../datasets/buoydata/", 44013, 1998)
-```
+-   Starting from 2007, a second row appears after the header to show the unit for each column, and it needs to be filtered out.
 
-![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-1.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-2.png)
+**Hints**:
 
-    ## # A tibble: 364 x 6
-    ##     Year Month   Day Wave_Height_mean Temperature_c_mean DayInYear 
-    ##    <dbl> <dbl> <dbl>            <dbl>              <dbl> <date>    
-    ##  1    98     1     1            0.939               5.67 1998-01-01
-    ##  2    98     1     2            0.700               5.88 1998-01-02
-    ##  3    98     1     3            0.4                 5.75 1998-01-03
-    ##  4    98     1     4            0.336               5.65 1998-01-04
-    ##  5    98     1     5            1.09                5.63 1998-01-05
-    ##  6    98     1     6            0.545               5.59 1998-01-06
-    ##  7    98     1     7            1.09                5.47 1998-01-07
-    ##  8    98     1     8            1.76                5.55 1998-01-08
-    ##  9    98     1     9            1.89                5.54 1998-01-09
-    ## 10    98     1    10            1.18                5.45 1998-01-10
-    ## # … with 354 more rows
+-   use conditional execution to deal with the inconsistencies above
 
-``` r
-summarize_buoy("../datasets/buoydata/", 44013, 1999, year_format = "Y")
-```
+-   don't worry about parsing failures in columns other than the ones that you will use for this excercise
 
-![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-3.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-4.png)
+-   there is a lot of missing temperature data during the mid 90s, resulting in a gap in the time series. The wave height data, however, appears to be continuous
 
-    ## # A tibble: 348 x 6
-    ##     Year Month   Day Wave_Height_mean Temperature_c_mean DayInYear 
-    ##    <dbl> <dbl> <dbl>            <dbl>              <dbl> <date>    
-    ##  1  1999     1     1            0.782               5.63 1999-01-01
-    ##  2  1999     1     2            1.03                5.47 1999-01-02
-    ##  3  1999     1     3            1.40                5.19 1999-01-03
-    ##  4  1999     1     4            1.74                5.11 1999-01-04
-    ##  5  1999     1     5            0.875               4.90 1999-01-05
-    ##  6  1999     1     6            0.515               4.98 1999-01-06
-    ##  7  1999     1     7            0.832               4.92 1999-01-07
-    ##  8  1999     1     8            0.536               4.78 1999-01-08
-    ##  9  1999     1     9            1.33                4.79 1999-01-09
-    ## 10  1999     1    10            1.02                4.51 1999-01-10
-    ## # … with 338 more rows
-
-``` r
-summarize_buoy("../datasets/buoydata/", 44013, 2007, year_format = "Y", skip_second_line = T)
-```
-
-![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-5.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-24-6.png)
-
-    ## # A tibble: 365 x 6
-    ##     Year Month Day   Wave_Height_mean Temperature_c_mean DayInYear 
-    ##    <dbl> <chr> <chr>            <dbl>              <dbl> <date>    
-    ##  1  2007 01    01               1.00                7.22 2007-01-01
-    ##  2  2007 01    02               1.09                7.38 2007-01-02
-    ##  3  2007 01    03               0.671               7.24 2007-01-03
-    ##  4  2007 01    04               0.500               7.33 2007-01-04
-    ##  5  2007 01    05               0.612               7.43 2007-01-05
-    ##  6  2007 01    06               0.554               7.72 2007-01-06
-    ##  7  2007 01    07               0.777               7.48 2007-01-07
-    ##  8  2007 01    08               1.34                7.39 2007-01-08
-    ##  9  2007 01    09               1.07                7.05 2007-01-09
-    ## 10  2007 01    10               0.840               6.88 2007-01-10
-    ## # … with 355 more rows
+![](assignment_6_files/figure-markdown_github/unnamed-chunk-19-1.png)![](assignment_6_files/figure-markdown_github/unnamed-chunk-19-2.png)
